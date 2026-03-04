@@ -1,4 +1,4 @@
-from cowsay import cowsay
+from cowsay import cowsay, list_cows
 import sys
 
 field = [["-" for j in range(10)] for i in range(10)]
@@ -15,7 +15,7 @@ if len(sys.argv) > 1:
 
 def encounter(x: int, y: int):
     if field[y][x] != '-':
-        print(cowsay(field[y][x]))
+        print(cowsay(field[y][x][0]))
 
 
 while True:
@@ -26,13 +26,13 @@ while True:
         com, *args = input().split()
     if com == "addmon":
         
-        if (len(args) == 3):
-            x, y, hello = args[0], args[1], args[2]
-            if (x  in list('1234567890')) and (y in list('1234567890')):
+        if (len(args) == 4):
+            name, x, y, hello = args[0], args[1], args[2], args[3]
+            if (x  in list('1234567890')) and (y in list('1234567890')) and (name in list_cows()):
                 x = int(x)
                 y = int(y)
-                field[y][x] = hello
-                print(f"Added monster to ({x}, {y}) saying {hello}")
+                field[y][x] = [hello, name]
+                print(f"Added monster {name} to ({x}, {y}) saying {hello}")
             else:
                 print("Invalid arguments")
 
