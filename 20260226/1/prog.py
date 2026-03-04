@@ -1,8 +1,15 @@
 from cowsay import cowsay
-
+import sys
 
 field = [["-" for j in range(10)] for i in range(10)]
 position_x, position_y = 0, 0
+
+fl = False
+if len(sys.args) > 1:
+    with open(sys.args[1], 'r') as f:
+        lst = f.readlines()
+        fl = True
+        i = 0
 
 
 
@@ -12,10 +19,11 @@ def encounter(x: int, y: int):
 
 
 while True:
-    com, *args = input().split()
-    print(com)
-    print(args)
-    print(*field, sep="\n")
+    if fl:
+        com, *args = lst[i]
+        i += 1
+    else:
+        com, *args = input().split()
     if com == "addmon":
         
         if (len(args) == 3):
@@ -47,5 +55,3 @@ while True:
     else:
         print("Invalid command")
             
-
-
