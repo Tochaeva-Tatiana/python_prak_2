@@ -15,7 +15,8 @@ if len(sys.argv) > 1:
 
 def encounter(x: int, y: int):
     if field[y][x] != '-':
-        print(cowsay(field[y][x][0]))
+        hello, name = field[y][x][0], field[y][x][1]
+        print(cowsay(hello, cow=name))
 
 
 while True:
