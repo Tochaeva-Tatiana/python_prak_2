@@ -64,10 +64,11 @@ while True:
                     x, y = args[j+1], args[j+2]
                     j += 1
                 j += 2
-            if (x  in list('1234567890')) and (y in list('1234567890')) and (name in (list_cows() + ['jgsbat'])):
+            if (hp.isdigit()) and (x  in list('1234567890')) and (y in list('1234567890')) and (name in (list_cows() + ['jgsbat'])):
                 x = int(x)
                 y = int(y)
-                field[y][x] = [hello, name]
+                hp = int(hp)
+                field[y][x] = [hello, name, hp]
                 print(f"Added monster {name} to ({x}, {y}) saying {hello}")
             else:
                 print("Invalid arguments")
