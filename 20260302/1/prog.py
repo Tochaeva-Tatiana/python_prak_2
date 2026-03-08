@@ -18,6 +18,8 @@ $the_cow = <<EOC;
 EOC
 """))
 
+import shlex
+
 field = [["-" for j in range(10)] for i in range(10)]
 position_x, position_y = 0, 0
 
@@ -44,14 +46,24 @@ def encounter(x: int, y: int):
 print("<<< Welcome to Python-MUD 0.1 >>>")
 while True:
     if fl:
-        com, *args = lst[i]
+        com, *args = shlex.split(lst[i])
         i += 1
     else:
-        com, *args = input().split()
+        com, *args = shlex.split(input())
+    
     if com == "addmon":
-        
-        if (len(args) == 4):
-            name, x, y, hello = args[0], args[1], args[2], args[3]
+        if (len(args) == 8):
+            name = args[0]
+            j = 1
+            while j < len(args):
+                if args[j] == 'hp':
+                    hp = args[j+1]
+                elif args[j] == 'hello':
+                    hello = args[j+1]
+                elif args[j] == 'coords':
+                    x, y = args[j+1], args[j+2]
+                    j += 1
+                j += 2
             if (x  in list('1234567890')) and (y in list('1234567890')) and (name in (list_cows() + ['jgsbat'])):
                 x = int(x)
                 y = int(y)
@@ -67,9 +79,9 @@ while True:
     elif com in ["up", "down", "left", "right"]:
         if len(args) == 0:
             if com == "up":
-                position_y = (position_y - 1) % 10
-            elif com == "down":
                 position_y = (position_y + 1) % 10
+            elif com == "down":
+                position_y = (position_y - 1) % 10
             elif com == "left":
                 position_x = (position_x - 1) % 10
             else:
