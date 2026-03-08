@@ -18,7 +18,7 @@ def encounter(x: int, y: int):
         hello, name = field[y][x][0], field[y][x][1]
         print(cowsay(hello, cow=name))
 
-
+print("<<< Welcome to Python-MUD 0.1 >>>")
 while True:
     if fl:
         com, *args = lst[i]
