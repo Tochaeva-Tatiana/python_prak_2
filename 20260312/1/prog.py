@@ -1,95 +1,117 @@
 from cowsay import cowsay, list_cows, read_dot_cow
 import sys
 from io import StringIO
-
-jgsbat = read_dot_cow(StringIO(r"""
-$the_cow = <<EOC;
-         $thoughts
-          $thoughts
-    ,_                    _,
-    ) '-._  ,_    _,  _.-' (
-    )  _.-'.|\\\\--//|.'-._  (
-     )'   .'\/o\/o\/'.   `(
-      ) .' . \====/ . '. (
-       )  / <<    >> \  (
-        '-._/``  ``\_.-'
-  jgs     __\\\\'--'//__
-         (((""`  `"")))
-EOC
-"""))
-
+import cmd
 import shlex
 
-field = [["-" for j in range(10)] for i in range(10)]
-position_x, position_y = 0, 0
 
-fl = False
-if len(sys.argv) > 1:
-    with open(sys.argv[1], 'r') as f:
-        lst = f.readlines()
-        fl = True
-        i = 0
+class cmd_cow(cmd.Cmd):
+
+    field = [["-" for j in range(10)] for i in range(10)]
+    position_x, position_y = 0, 0
+    file = None
+
+    jgsbat = read_dot_cow(StringIO(r"""
+    $the_cow = <<EOC;
+            $thoughts
+            $thoughts
+        ,_                    _,
+        ) '-._  ,_    _,  _.-' (
+        )  _.-'.|\\\\--//|.'-._  (
+        )'   .'\/o\/o\/'.   `(
+        ) .' . \====/ . '. (
+        )  / <<    >> \  (
+            '-._/``  ``\_.-'
+    jgs     __\\\\'--'//__
+            (((""`  `"")))
+    EOC
+    """))
+
+    def __init__(self):
+        super().__init__()
+        if len(sys.argv) > 1:
+            with open(sys.argv[1], 'r') as f:
+                self.file = f.readlines()
+
+    def encounter(self, x: int, y: int):
+        if self.field[y][x] != '-':
+            hello, name = self.field[y][x][0], self.field[y][x][1]
+            if name == 'jgsbat':
+                print(cowsay(hello, cowfile=self.jgsbat))
+            else:
+                print(cowsay(hello, cow=name))
+
+    def do_addmon(self, args):
+        data = shlex.split(args)
+
+    def do_up(self, args):
+        self.position_y = (self.position_y + 1) % 10
+  
+
+    def do_down(self, args):
+        self.position_y = (self.position_y - 1) % 10
+
+
+    def do_left(self, args):
+        self.position_x = (self.position_x - 1) % 10
+                
+
+    def do_right(self, args):
+        self.position_x = (self.position_x + 1) % 10
 
 
 
-def encounter(x: int, y: int):
-    if field[y][x] != '-':
-        hello, name = field[y][x][0], field[y][x][1]
-        if name == 'jgsbat':
-        # Используем cowfile
-            print(cowsay(hello, cowfile=jgsbat))
-        else:
-        # Используем имя (для стандартных коров)
-            print(cowsay(hello, cow=name))
+if __name__ == '__main__':
+    mud_game = cmd_cow()
+    mud_game.cmdloop()
 
 
-print("<<< Welcome to Python-MUD 0.1 >>>")
-while True:
-    if fl:
-        com, *args = shlex.split(lst[i])
-        i += 1
-    else:
-        com, *args = shlex.split(input())
+# print("<<< Welcome to Python-MUD 0.1 >>>")
+# while True:
+#     if fl:
+#         com, *args = shlex.split(lst[i])
+#         i += 1
+#     else:
+#         com, *args = shlex.split(input())
     
-    if com == "addmon":
-        if (len(args) == 8):
-            name = args[0]
-            j = 1
-            while j < len(args):
-                if args[j] == 'hp':
-                    hp = args[j+1]
-                elif args[j] == 'hello':
-                    hello = args[j+1]
-                elif args[j] == 'coords':
-                    x, y = args[j+1], args[j+2]
-                    j += 1
-                j += 2
-            if (hp.isdigit()) and (x  in list('1234567890')) and (y in list('1234567890')) and (name in (list_cows() + ['jgsbat'])):
-                x = int(x)
-                y = int(y)
-                hp = int(hp)
-                field[y][x] = [hello, name, hp]
-                print(f"Added monster {name} to ({x}, {y}) saying {hello}")
-            else:
-                print("Invalid arguments")
-                print(1)
+#     if com == "addmon":
+#         if (len(args) == 8):
+#             name = args[0]
+#             j = 1
+#             while j < len(args):
+#                 if args[j] == 'hp':
+#                     hp = args[j+1]
+#                 elif args[j] == 'hello':
+#                     hello = args[j+1]
+#                 elif args[j] == 'coords':
+#                     x, y = args[j+1], args[j+2]
+#                     j += 1
+#                 j += 2
+#             if (hp.isdigit()) and (x  in list('1234567890')) and (y in list('1234567890')) and (name in (list_cows() + ['jgsbat'])):
+#                 x = int(x)
+#                 y = int(y)
+#                 hp = int(hp)
+#                 field[y][x] = [hello, name, hp]
+#                 print(f"Added monster {name} to ({x}, {y}) saying {hello}")
+#             else:
+#                 print("Invalid arguments")
 
-        else:
-            print("Invalid arguments")
-            print(2)
-    elif com in ["up", "down", "left", "right"]:
-        if len(args) == 0:
-            if com == "up":
-                position_y = (position_y + 1) % 10
-            elif com == "down":
-                position_y = (position_y - 1) % 10
-            elif com == "left":
-                position_x = (position_x - 1) % 10
-            else:
-                position_x = (position_x + 1) % 10
-            print(f"Moved to ({position_x}, {position_y})")
-            encounter(position_x, position_y)
-        else:
-            print("Invalid arguments")
-    else:
-        print("Invalid command")
+#         else:
+#             print("Invalid arguments")
+#     elif com in ["up", "down", "left", "right"]:
+#         if len(args) == 0:
+#             if com == "up":
+#                 position_y = (position_y + 1) % 10
+#             elif com == "down":
+#                 position_y = (position_y - 1) % 10
+#             elif com == "left":
+#                 position_x = (position_x - 1) % 10
+#             else:
+#                 position_x = (position_x + 1) % 10
+#             print(f"Moved to ({position_x}, {position_y})")
+#             encounter(position_x, position_y)
+#         else:
+#             print("Invalid arguments")
+#     else:
+#         print("Invalid command")
+
