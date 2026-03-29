@@ -151,10 +151,10 @@ class cmd_cow(cmd.Cmd):
         elif len(data) == 3:
             if 'with'.startswith(text):
                 return ['with']
-        elif len(data) == 4 and data[1] != 'with':
+        elif len(data) == 4 and data[2] != 'with':
             if 'with'.startswith(data[1]):
                 return ['with']
-        elif len(data) >= 4 and data[1] == 'with':
+        elif len(data) >= 4 and data[2] == 'with':
             return [w for w in weapons if w.startswith(text)]
         return []
 
