@@ -43,21 +43,50 @@ class cmd_cow(cmd.Cmd):
 
     def do_addmon(self, args):
         data = shlex.split(args)
+        if (len(data) == 8):
+            name = data[0]
+            j = 1
+            while j < len(data):
+                if data[j] == 'hp':
+                    hp = data[j+1]
+                elif data[j] == 'hello':
+                    hello = data[j+1]
+                elif data[j] == 'coords':
+                    x, y = data[j+1], data[j+2]
+                    j += 1
+                j += 2
+            if (hp.isdigit()) and (x.isdigit()) and (y.isdigit()) and (name in (list_cows() + ['jgsbat'])):
+                x = int(x)
+                y = int(y)
+                hp = int(hp)
+                self.field[y][x] = [hello, name, hp]
+                print(f"Added monster {name} to ({x}, {y}) saying {hello}")
+            else:
+                print("Invalid arguments")
+
 
     def do_up(self, args):
-        self.position_y = (self.position_y + 1) % 10
+        if not args:
+            self.position_y = (self.position_y + 1) % 10
+            self.encounter(self.position_x, self.position_y)
   
 
     def do_down(self, args):
-        self.position_y = (self.position_y - 1) % 10
+        if not args:
+            self.position_y = (self.position_y - 1) % 10
+            self.encounter(self.position_x, self.position_y)
 
 
     def do_left(self, args):
-        self.position_x = (self.position_x - 1) % 10
+        if not args:
+            self.position_x = (self.position_x - 1) % 10
+            self.encounter(self.position_x, self.position_y)
                 
 
     def do_right(self, args):
-        self.position_x = (self.position_x + 1) % 10
+        if not args:
+            self.position_x = (self.position_x + 1) % 10
+            self.encounter(self.position_x, self.position_y)
 
 
 
