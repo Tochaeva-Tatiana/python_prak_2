@@ -106,12 +106,30 @@ class cmd_cow(cmd.Cmd):
             print("Invalid arguments")
 
     def do_attack(self, args):
-        if not args:
+        data = shlex.split(args)
+        if len(data) == 2 or not data:
+            if not data:
+                damage = 10
+            else:
+                if data[0] == 'with':
+                    if data[1] == 'sword':
+                        damage = 10
+                    elif data[1] ==  'spear':
+                        damage = 15
+                    elif data[1] == 'axe':
+                        damage = 20
+                    else:
+                        print("Unknown weapon")
+                        return
+                else:
+                    print("Invalid arguments")
+                    return
+
             if self.field[self.position_y][self.position_x] == '-':
                 print("No monster here")
             else:
                 monster = self.field[self.position_y][self.position_x]
-                attack = min(10, monster[2])
+                attack = min(damage, monster[2])
                 monster[2] -= attack
                 print(f"Attacked {monster[1]},  damage {attack} hp")
                 if monster[2] == 0:
@@ -121,6 +139,20 @@ class cmd_cow(cmd.Cmd):
                     print(f"{monster[1]} now has {monster[2]}")
         else:
             print("Invalid arguments")
+
+
+    def complete_attack(self, text, line, begidx, endidx):
+        weapons = ['sword', 'spear', 'axe']
+        args = shlex.split(line)
+        if len(args) == 1:
+            if 'with'.startswith(text):
+                return ['with']
+        elif len(args) == 2 and args[1] != 'with':
+            if 'with'.startswith(args[1]):
+                return ['with']
+        elif len(args) >= 2 and args[1] == 'with':
+            return [w for w in weapons if w.startswith(text)]
+        return []
 
 
     def cmdloop(self):
