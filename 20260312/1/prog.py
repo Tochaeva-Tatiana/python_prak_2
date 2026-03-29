@@ -106,11 +106,14 @@ class cmd_cow(cmd.Cmd):
             print("Invalid arguments")
 
     def do_attack(self, args):
-        if not args:
-            if self.field[self.position_y][self.position_x] == '-':
+        data = shlex.split(args)
+        if len(data) == 1:
+            monster = self.field[self.position_y][self.position_x]
+            if monster == '-':
                 print("No monster here")
+            elif monster[1] != data[0]:
+                print(f"No {data[0]} here")
             else:
-                monster = self.field[self.position_y][self.position_x]
                 attack = min(10, monster[2])
                 monster[2] -= attack
                 print(f"Attacked {monster[1]},  damage {attack} hp")
@@ -122,6 +125,12 @@ class cmd_cow(cmd.Cmd):
         else:
             print("Invalid arguments")
 
+    def complete_attack(self, text, line, begidx, endidx):
+        data = shlex.split(line)
+        lst_monsters = list_cows() + ['jgsbat']
+        if len(data) == 2:
+            return [m for m in lst_monsters if m.startswith(text)]
+        return []
 
     def cmdloop(self):
         print("<<< Welcome to Python-MUD 0.1 >>>")
