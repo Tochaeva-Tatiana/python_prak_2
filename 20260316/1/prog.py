@@ -5,142 +5,176 @@ import cmd
 import shlex
 
 
-class cmd_cow(cmd.Cmd):
-
-    field = [["-" for j in range(10)] for i in range(10)]
-    position_x, position_y = 0, 0
-    file_com = None
-    i = 0
-
-    jgsbat = read_dot_cow(StringIO(r"""
-    $the_cow = <<EOC;
-            $thoughts
-            $thoughts
-        ,_                    _,
-        ) '-._  ,_    _,  _.-' (
-        )  _.-'.|\\\\--//|.'-._  (
-        )'   .'\/o\/o\/'.   `(
-        ) .' . \====/ . '. (
-        )  / <<    >> \  (
-            '-._/``  ``\_.-'
-    jgs     __\\\\'--'//__
-            (((""`  `"")))
-    EOC
-    """))
+class Game:
 
     def __init__(self):
-        super().__init__()
-        if len(sys.argv) > 1:
-            with open(sys.argv[1], 'r') as f:
-                self.file_com = [shlex.split(line.strip()) for line in f if line.strip()]
+        self.field = [["-" for j in range(10)] for i in range(10)]
+        self.position_x = 0
+        self.position_y = 0
+
+        self.jgsbat = read_dot_cow(StringIO(r"""
+        $the_cow = <<EOC;
+                $thoughts
+                $thoughts
+            ,_                    _,
+            ) '-._  ,_    _,  _.-' (
+            )  _.-'.|\\\\--//|.'-._  (
+            )'   .'\/o\/o\/'.   `(
+            ) .' . \====/ . '. (
+            )  / <<    >> \  (
+                '-._/``  ``\_.-'
+        jgs     __\\\\'--'//__
+                (((""`  `"")))
+        EOC
+        """))
 
     def encounter(self, x: int, y: int):
         if self.field[y][x] != '-':
             hello, name = self.field[y][x][0], self.field[y][x][1]
             if name == 'jgsbat':
-                print(cowsay(hello, cowfile=self.jgsbat))
+                return cowsay(hello, cowfile=self.jgsbat)
             else:
-                print(cowsay(hello, cow=name))
+                return cowsay(hello, cow=name)
+        return ""
 
-    def do_addmon(self, args):
+    def addmon(self, args):
         data = shlex.split(args)
-        if (len(data) == 8):
+        if len(data) == 8:
             name = data[0]
             j = 1
             while j < len(data):
                 if data[j] == 'hp':
-                    hp = data[j+1]
+                    hp = data[j + 1]
                 elif data[j] == 'hello':
-                    hello = data[j+1]
+                    hello = data[j + 1]
                 elif data[j] == 'coords':
-                    x, y = data[j+1], data[j+2]
+                    x, y = data[j + 1], data[j + 2]
                     j += 1
                 j += 2
+
             if (hp.isdigit()) and (x in list("1234567890")) and (y in list("1234567890")) \
-                and (name in (list_cows() + ['jgsbat'])):
+                    and (name in (list_cows() + ['jgsbat'])):
                 x = int(x)
                 y = int(y)
                 hp = int(hp)
                 self.field[y][x] = [hello, name, hp]
-                print(f"Added monster {name} to ({x}, {y}) saying {hello}")
+                return f"Added monster {name} to ({x}, {y}) saying {hello}"
             else:
-                print("Invalid arguments")
+                return "Invalid arguments"
         else:
-            print("Invalid command")
+            return "Invalid command"
 
-
-    def do_up(self, args):
-        if not args:
-            
+    def move(self, direction):
+        if direction == "up":
             self.position_y = (self.position_y + 1) % 10
-            self.encounter(self.position_x, self.position_y)
-            print(f"Moved to ({self.position_x}, {self.position_y})")
-        else:
-            print("Invalid arguments")
-  
-
-    def do_down(self, args):
-        if not args:
+        elif direction == "down":
             self.position_y = (self.position_y - 1) % 10
-            self.encounter(self.position_x, self.position_y)
-            print(f"Moved to ({self.position_x}, {self.position_y})")
-        else:
-            print("Invalid arguments")
-
-
-    def do_left(self, args):
-        if not args:
+        elif direction == "left":
             self.position_x = (self.position_x - 1) % 10
-            self.encounter(self.position_x, self.position_y)
-            print(f"Moved to ({self.position_x}, {self.position_y})")
-        else:
-            print("Invalid arguments")
-                
-
-    def do_right(self, args):
-        if not args:
+        elif direction == "right":
             self.position_x = (self.position_x + 1) % 10
-            self.encounter(self.position_x, self.position_y)
-            print(f"Moved to ({self.position_x}, {self.position_y})")
-        else:
-            print("Invalid arguments")
 
-    def do_attack(self, args):
+        answer = self.encounter(self.position_x, self.position_y)
+        if answer:
+            answer += "\n"
+        answer += f"Moved to ({self.position_x}, {self.position_y})"
+        return answer
+
+    def attack(self, args):
         data = shlex.split(args)
         if len(data) == 3 or len(data) == 1:
             monster = self.field[self.position_y][self.position_x]
             if monster == '-':
-                print("No monster here")
-                return 
+                return "No monster here"
             elif monster[1] != data[0]:
-                print(f"No {data[0]} here")
-                return
+                return f"No {data[0]} here"
+
             if len(data) == 1:
                 damage = 10
             else:
                 if data[1] == 'with':
                     if data[2] == 'sword':
                         damage = 10
-                    elif data[2] ==  'spear':
+                    elif data[2] == 'spear':
                         damage = 15
                     elif data[2] == 'axe':
                         damage = 20
                     else:
-                        print("Unknown weapon")
-                        return
+                        return "Unknown weapon"
                 else:
-                    print("Invalid arguments")
-                    return
+                    return "Invalid arguments"
+
             attack = min(damage, monster[2])
             monster[2] -= attack
-            print(f"Attacked {monster[1]},  damage {attack} hp")
+            answer = f"Attacked {monster[1]},  damage {attack} hp"
             if monster[2] == 0:
-                print(f"{monster[1]} died")
+                answer += f"\n{monster[1]} died"
                 self.field[self.position_y][self.position_x] = '-'
             else:
-                print(f"{monster[1]} now has {monster[2]}")
+                answer += f"\n{monster[1]} now has {monster[2]}"
+            return answer
+        else:
+            return "Invalid arguments"
+
+    def process(self, command):
+        data = shlex.split(command)
+        if not data:
+            return ""
+
+        if data[0] == "addmon":
+            return self.addmon(command[len("addmon "):])
+        elif data[0] in ["up", "down", "left", "right"]:
+            if len(data) == 1:
+                return self.move(data[0])
+            else:
+                return "Invalid arguments"
+        elif data[0] == "attack":
+            return self.attack(command[len("attack "):])
+        else:
+            return "Invalid command"
+
+
+class cmd_cow(cmd.Cmd):
+
+    file_com = None
+    i = 0
+
+    def __init__(self):
+        super().__init__()
+        self.game = Game()
+        if len(sys.argv) > 1:
+            with open(sys.argv[1], 'r') as f:
+                self.file_com = [shlex.split(line.strip()) for line in f if line.strip()]
+
+    def do_addmon(self, args):
+        print(self.game.process("addmon " + args))
+
+    def do_up(self, args):
+        if not args:
+            print(self.game.process("up"))
         else:
             print("Invalid arguments")
+
+    def do_down(self, args):
+        if not args:
+            print(self.game.process("down"))
+        else:
+            print("Invalid arguments")
+
+    def do_left(self, args):
+        if not args:
+            print(self.game.process("left"))
+        else:
+            print("Invalid arguments")
+
+    def do_right(self, args):
+        if not args:
+            print(self.game.process("right"))
+        else:
+            print("Invalid arguments")
+
+    def do_attack(self, args):
+        print(self.game.process("attack " + args))
 
     def complete_attack(self, text, line, begidx, endidx):
         data = shlex.split(line)
@@ -158,8 +192,6 @@ class cmd_cow(cmd.Cmd):
             return [w for w in weapons if w.startswith(text)]
         return []
 
-
-
     def cmdloop(self):
         print("<<< Welcome to Python-MUD 0.1 >>>")
         if self.file_com:
@@ -175,7 +207,6 @@ class cmd_cow(cmd.Cmd):
 
     def do_EOF(self, args):
         return True
-
 
 
 if __name__ == '__main__':
