@@ -11,7 +11,9 @@ class Game:
 
     def __init__(self):
         """Create empty game field."""
-        self.field = [["-" for j in range(FIELD_SIZE)] for i in range(FIELD_SIZE)]
+        self.field = [
+            ["-" for j in range(FIELD_SIZE)] for i in range(FIELD_SIZE)
+        ]
         self.players = {}
 
         self.jgsbat = read_dot_cow(StringIO(r"""
