@@ -46,6 +46,9 @@ class CmdCow(cmd.Cmd):
         else:
             print("Invalid arguments")
 
+    def do_sayall(self, args):
+        self.request("sayall " + args)
+
     def do_attack(self, args):
         self.request("attack " + args)
 

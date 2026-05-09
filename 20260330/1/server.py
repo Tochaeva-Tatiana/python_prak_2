@@ -132,6 +132,13 @@ class Game:
 
             return [], [answer]
         return "Invalid arguments", []
+    
+    def sayall(self, args, username):
+        data = shlex.split(args)
+        if not data:
+            return "Invalid arguments", []
+
+        return "", [f"{username}: {args}"]
 
     def process(self, command, username):
         data = shlex.split(command)
@@ -146,6 +153,8 @@ class Game:
             return "Invalid arguments", []
         if data[0] == "attack":
             return self.attack(command[len("attack "):], username)
+        if data[0] == "sayall":
+            return self.sayall(command[len("sayall "):], username)
 
         return "Invalid command", []
 
