@@ -34,6 +34,18 @@ class Server:
         for username in list(self.clients):
             await self.send_to(username, message)
 
+    async def wandering_monsters(self):
+        """Move monsters every 30 seconds."""
+        while True:
+            await asyncio.sleep(30)
+
+            message, encounters = self.game.wandering_monster()
+
+            await self.broadcast(message)
+
+            for username, encounter in encounters:
+                await self.send_to(username, encounter)
+
     async def handle_client(self, reader, writer):
         """Handle one client."""
         username = ""
@@ -86,6 +98,8 @@ class Server:
             HOST,
             PORT,
         )
+
+        asyncio.create_task(self.wandering_monsters())
 
         async with server:
             await server.serve_forever()

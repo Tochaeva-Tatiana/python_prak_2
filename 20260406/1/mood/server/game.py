@@ -4,6 +4,7 @@ from cowsay import cowsay, list_cows, read_dot_cow
 from io import StringIO
 import shlex
 from mood.common import FIELD_SIZE, WEAPONS
+import random
 
 
 class Game:
@@ -107,6 +108,52 @@ class Game:
             answer += "\n"
         answer += f"Moved to ({position_x}, {position_y})"
         return answer, []
+    
+    def wandering_monster(self):
+        """Move random monster to a free neighbour cell."""
+        monsters = []
+
+        for y in range(10):
+            for x in range(10):
+                if self.field[y][x] != "-":
+                    monsters.append((x, y))
+
+        if not monsters:
+            return "", []
+
+        directions = ["up", "down", "left", "right"]
+
+        while True:
+            x, y = random.choice(monsters)
+            direction = random.choice(directions)
+
+            new_x = x
+            new_y = y
+
+            if direction == "up":
+                new_y = (new_y + 1) % 10
+            elif direction == "down":
+                new_y = (new_y - 1) % 10
+            elif direction == "left":
+                new_x = (new_x - 1) % 10
+            elif direction == "right":
+                new_x = (new_x + 1) % 10
+
+            if self.field[new_y][new_x] == "-":
+                break
+
+        monster = self.field[y][x]
+        self.field[new_y][new_x] = monster
+        self.field[y][x] = "-"
+
+        encounters = []
+
+        for username in self.players:
+            position_x, position_y = self.players[username]
+            if position_x == new_x and position_y == new_y:
+                encounters.append((username, self.encounter(new_x, new_y)))
+
+        return f"{monster[1]} moved one cell {direction}", encounters
 
     def attack(self, args, username):
         """Attack monster."""
