@@ -60,6 +60,10 @@ class CmdCow(cmd.Cmd):
         """Send message to all players."""
         self.request("sayall " + args)
 
+    def do_movemonsters(self, args):
+        """Turn wandering monsters on or off."""
+        self.request("movemonsters " + args)
+
     def do_attack(self, args):
         """Attack monster."""
         self.request("attack " + args)

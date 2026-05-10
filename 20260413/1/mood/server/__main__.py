@@ -13,6 +13,7 @@ class Server:
         """Create server."""
         self.game = Game()
         self.clients = {}
+        self.moving_monsters = True
 
     async def send_to(self, username, message):
         """Send message to one player."""
@@ -34,10 +35,24 @@ class Server:
         for username in list(self.clients):
             await self.send_to(username, message)
 
+    async def movemonsters(self, username, args):
+        """Turn wandering monsters on or off."""
+        if args == "on":
+            self.moving_monsters = True
+            await self.send_to(username, "Moving monsters: on")
+        elif args == "off":
+            self.moving_monsters = False
+            await self.send_to(username, "Moving monsters: off")
+        else:
+            await self.send_to(username, "Invalid arguments")
+
     async def wandering_monsters(self):
         """Move monsters every 30 seconds."""
         while True:
             await asyncio.sleep(30)
+
+            if not self.moving_monsters:
+                continue
 
             message, encounters = self.game.wandering_monster()
 
@@ -74,6 +89,13 @@ class Server:
 
                 if command == "quit":
                     break
+
+                if command.startswith("movemonsters "):
+                    await self.movemonsters(
+                        username,
+                        command[len("movemonsters "):],
+                    )
+                    continue
 
                 answer, messages = self.game.process(command, username)
 
