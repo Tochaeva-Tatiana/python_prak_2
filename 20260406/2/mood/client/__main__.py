@@ -105,33 +105,62 @@ async def read_server(reader):
         print(answer.decode().rstrip(), flush=True)
 
 
-async def read_user(cmdline):
+async def read_user(cmdline, filename=None):
     """Read user commands."""
-    loop = asyncio.get_event_loop()
+    if filename is None:
+        loop = asyncio.get_event_loop()
 
-    while True:
-        line = await loop.run_in_executor(None, input)
+        while True:
+            line = await loop.run_in_executor(None, input)
 
-        if line == "EOF":
-            line = "quit"
+            if line == "EOF":
+                line = "quit"
 
-        stop = cmdline.onecmd(line)
+            stop = cmdline.onecmd(line)
 
-        await cmdline.writer.drain()
+            await cmdline.writer.drain()
 
-        if stop:
-            cmdline.writer.close()
-            await cmdline.writer.wait_closed()
-            break
+            if stop:
+                cmdline.writer.close()
+                await cmdline.writer.wait_closed()
+                break
+    else:
+        with open(filename, encoding="utf-8") as file:
+            cmdline.prompt = ""
+            cmdline.use_rawinput = False
+
+            for line in file:
+                line = line.strip()
+
+                if not line:
+                    continue
+
+                stop = cmdline.onecmd(line)
+
+                await cmdline.writer.drain()
+
+                if stop:
+                    break
+
+                await asyncio.sleep(1)
+
+        cmdline.writer.close()
+        await cmdline.writer.wait_closed()
 
 
 async def main():
     """Run client."""
-    if len(sys.argv) != 2:
-        print("Usage: python -m mood.client username")
+    if len(sys.argv) != 2 and len(sys.argv) != 4:
+        print("Usage: python -m mood.client username [--file filename]")
         return
 
     username = sys.argv[1]
+    filename = None
+    if len(sys.argv) == 4:
+        if sys.argv[2] != "--file":
+            print("Usage: python -m mood.client username [--file filename]")
+            return
+        filename = sys.argv[3]
 
     reader, writer = await asyncio.open_connection(HOST, PORT)
 
@@ -152,7 +181,7 @@ async def main():
 
     await asyncio.gather(
         read_server(reader),
-        read_user(cmdline),
+        read_user(cmdline, filename),
     )
 
 
