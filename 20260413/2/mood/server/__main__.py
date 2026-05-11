@@ -4,7 +4,10 @@ import asyncio
 
 from mood.common import HOST, PORT
 from mood.server.game import Game
+import gettext
+from pathlib import Path
 
+LOCALEDIR = Path(__file__).parent / "po"
 
 class Server:
     """MOOD server."""
@@ -14,8 +17,9 @@ class Server:
         self.game = Game()
         self.clients = {}
         self.moving_monsters = True
+        self.locales = {}
 
-    async def send_to(self, username, message):
+    async def send_to(self, username, message, *args):
         """Send message to one player."""
         if not message:
             return
@@ -23,17 +27,61 @@ class Server:
         writer = self.clients.get(username)
         if writer is None:
             return
+        
+        translation = self.translation(username)
+        
+        if isinstance(message, tuple) and message[0] == "attack":
+            _, player, monster, weapon, damage, hp_left = message
+
+            damage_text = translation.ngettext(
+                "{} hp",
+                "{} hp",
+                damage,
+            ).format(damage)
+
+            hp_left_text = translation.ngettext(
+                "{} hp",
+                "{} hp",
+                hp_left,
+            ).format(hp_left)
+
+            message = translation.gettext(
+                "{} attacked {} with {}, damage {}, {} left"
+            ).format(player, monster, weapon, damage_text, hp_left_text)
+
+        elif isinstance(message, tuple) and message[0] == "ngettext":
+            singular = message[1]
+            plural = message[2]
+            number = message[3]
+            format_args = message[4]
+
+            message = translation.ngettext(
+                singular,
+                plural,
+                number,
+            ).format(*format_args)
+
+        elif isinstance(message, tuple):
+            args = message[1:]
+            message = message[0]
+            message = translation.gettext(message).format(*args)
+
+        elif args:
+            message = translation.gettext(message).format(*args)
+
+        else:
+            message = translation.gettext(message)
 
         writer.write((message + "\n").encode())
         await writer.drain()
 
-    async def broadcast(self, message):
+    async def broadcast(self, message, *args):
         """Send message to all players."""
         if not message:
             return
 
         for username in list(self.clients):
-            await self.send_to(username, message)
+            await self.send_to(username, message, *args)
 
     async def movemonsters(self, username, args):
         """Turn wandering monsters on or off."""
@@ -45,6 +93,25 @@ class Server:
             await self.send_to(username, "Moving monsters: off")
         else:
             await self.send_to(username, "Invalid arguments")
+    
+    async def set_locale(self, username, args):
+        """Set client locale."""
+        self.locales[username] = args
+        await self.send_to(username, "Set up locale: {}", args)
+
+    def translation(self, username):
+        """Return translation for client."""
+        locale = self.locales.get(username)
+
+        if locale == "ru_RU.UTF8":
+            return gettext.translation(
+                "mood_server",
+                localedir=LOCALEDIR,
+                languages=["ru_RU"],
+                fallback=True,
+            )
+
+        return gettext.NullTranslations()
 
     async def wandering_monsters(self):
         """Move monsters every 30 seconds."""
@@ -79,7 +146,7 @@ class Server:
             writer.write(b"OK\n")
             await writer.drain()
 
-            await self.broadcast(f"{username} entered MUD")
+            await self.broadcast("{} entered MUD", username)
 
             while not reader.at_eof():
                 command = (await reader.readline()).decode().strip()
@@ -97,6 +164,13 @@ class Server:
                     )
                     continue
 
+                if command.startswith("locale "):
+                    await self.set_locale(
+                        username,
+                        command[len("locale "):],
+                    )
+                    continue
+
                 answer, messages = self.game.process(command, username)
 
                 await self.send_to(username, answer)
@@ -107,8 +181,9 @@ class Server:
         finally:
             if username in self.clients:
                 self.clients.pop(username)
+                self.locales.pop(username, None)
                 self.game.del_player(username)
-                await self.broadcast(f"{username} left MUD")
+                await self.broadcast("{} left MUD", username)
 
             writer.close()
             await writer.wait_closed()

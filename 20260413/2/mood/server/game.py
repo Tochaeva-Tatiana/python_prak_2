@@ -82,8 +82,10 @@ class Game:
                 hp = int(hp)
                 self.field[y][x] = [hello, name, hp]
                 message = (
-                    f"{username} added monster {name} "
-                    f"to ({x}, {y}) with {hp} hp"
+                    "ngettext",
+                    "{} added monster {} to ({}, {}) with {} hp",
+                    "{} added monster {} to ({}, {}) with {} hp",
+                    hp, (username, name, x, y, hp),
                 )
                 return "", [message]
             return "Invalid arguments", []
@@ -106,8 +108,10 @@ class Game:
         answer = self.encounter(position_x, position_y)
         if answer:
             answer += "\n"
-        answer += f"Moved to ({position_x}, {position_y})"
-        return answer, []
+            answer += f"Moved to ({position_x}, {position_y})"
+            return answer, []
+
+        return ("Moved to ({}, {})", position_x, position_y), []
     
     def wandering_monster(self):
         """Move random monster to a free neighbour cell."""
@@ -153,7 +157,7 @@ class Game:
             if position_x == new_x and position_y == new_y:
                 encounters.append((username, self.encounter(new_x, new_y)))
 
-        return f"{monster[1]} moved one cell {direction}", encounters
+        return ("{} moved one cell " + direction, monster[1]), encounters
 
     def attack(self, args, username):
         """Attack monster."""
@@ -165,7 +169,7 @@ class Game:
             if monster == "-":
                 return "No monster here", []
             if monster[1] != data[0]:
-                return f"No {data[0]} here", []
+                return ("No {} here", data[0]), []
 
             if len(data) == 1:
                 damage = WEAPONS["sword"]
@@ -180,16 +184,18 @@ class Game:
 
             attack = min(damage, monster[2])
             monster[2] -= attack
-            answer = (
-                f"{username} attacked {monster[1]} with {weapon}, "
-                f"damage {attack} hp, {monster[2]} hp left"
-            )
+            answer = [(
+                "attack", username, monster[1], weapon, attack, monster[2],
+            )]
+
+            
+
 
             if monster[2] == 0:
-                answer += f"\n{monster[1]} died"
+                answer.append(("\n{} died", monster[1]))
                 self.field[position_y][position_x] = "-"
 
-            return "", [answer]
+            return "", answer
         return "Invalid arguments", []
 
     def sayall(self, args, username):

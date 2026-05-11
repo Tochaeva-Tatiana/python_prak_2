@@ -64,6 +64,10 @@ class CmdCow(cmd.Cmd):
         """Turn wandering monsters on or off."""
         self.request("movemonsters " + args)
 
+    def do_locale(self, args):
+        """Set locale."""
+        self.request("locale " + args)
+
     def do_attack(self, args):
         """Attack monster."""
         self.request("attack " + args)
