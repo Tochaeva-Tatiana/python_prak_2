@@ -202,5 +202,11 @@ class Server:
             await server.serve_forever()
 
 
-if __name__ == "__main__":
+
+def serve():
+    """Run MOOD server."""
     asyncio.run(Server().run())
+
+
+if __name__ == "__main__":
+    serve()
