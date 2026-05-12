@@ -6,12 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import sys
+from pathlib import Path
 
 project = 'MOOD'
 copyright = '2026, Tochaeva Tatiana'
 author = 'Tochaeva Tatiana'
 
-sys.path.append("..")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

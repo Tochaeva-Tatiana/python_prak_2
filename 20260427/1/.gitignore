@@ -3,3 +3,4 @@ __pycache__/
 doc/_build/
 mood/server/po/mood_server.pot
 mood/server/po/*/LC_MESSAGES/*.mo
+.doit.db 
