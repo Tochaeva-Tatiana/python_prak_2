@@ -6,6 +6,8 @@ import cmd
 import shlex
 import sys
 from mood.common import HOST, PORT, WEAPONS
+import webbrowser
+from pathlib import Path
 
 
 class CmdCow(cmd.Cmd):
@@ -19,6 +21,11 @@ class CmdCow(cmd.Cmd):
         self.username = username
         self.reader = reader
         self.writer = writer
+
+    def do_documentation(self, args):
+        """Open generated documentation."""
+        doc_path = Path(__file__).parent.parent / "documentation" / "index.html"
+        webbrowser.open(doc_path.resolve().as_uri())
 
     def request(self, command):
         """Send command to server."""
@@ -192,6 +199,9 @@ async def main():
         read_user(cmdline, filename),
     )
 
+def main_sync():
+    """Run client."""
+    asyncio.run(main())
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main_sync()
