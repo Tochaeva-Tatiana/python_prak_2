@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mood"
+version = "0.1.0"
+description = "Multiplayer cowsay-based MUD game"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "python-cowsay",
+    "babel",
+]
+
+[project.scripts]
+mood-client = "mood.client.__main__:main_sync"
+mood-server = "mood.server.__main__:serve"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mood*"]
+
+[tool.setuptools.package-data]
+"mood.server" = [
+    "po/*/LC_MESSAGES/*.mo",
+]
+"mood" = [
+    "documentation/**/*",
+]
